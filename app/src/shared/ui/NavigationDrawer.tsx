@@ -1,4 +1,4 @@
-import { Home, FileText, Settings, Upload, BarChart2 } from 'lucide-react';
+import { Home, FileText, Settings, Upload, BarChart2, CheckCircle } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Icon } from '@shared/ui/Icon';
 import { Link, useLocation } from 'react-router-dom';
@@ -8,6 +8,7 @@ const navItems = [
   { icon: Home, label: 'Dashboard', href: '/' },
   { icon: Upload, label: 'Upload', href: '/upload' },
   { icon: BarChart2, label: 'Analysis', href: '/analysis' },
+  { icon: CheckCircle, label: 'Review', href: '/review' },
   { icon: FileText, label: 'Documents', href: '/documents' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
@@ -19,7 +20,7 @@ export const NavigationDrawer = () => {
     <aside className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 border-r border-white/5 bg-black/50 backdrop-blur-xl hidden md:block">
       <nav className="p-4 space-y-2">
         {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname.startsWith(item.href) && (item.href !== '/' || location.pathname === '/');
             return (
             <Link key={item.href} to={item.href} className="block">
                 <Button
