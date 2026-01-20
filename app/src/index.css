@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #000000;
+
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-foreground: #FFFFFF;
+
+  --color-secondary: #7C3AED;
+  --color-secondary-foreground: #FFFFFF;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-surface: rgba(255, 255, 255, 0.05);
+
+  --shadow-elevation-low: 0 2px 8px 0 rgba(0, 0, 0, 0.5);
+  --shadow-elevation-mid: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
+  --shadow-elevation-high: 0 16px 32px 0 rgba(0, 0, 0, 0.7);
+
+  --backdrop-blur-xs: 2px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: white;
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  .glass {
+    background-color: var(--color-glass-surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-glass-border);
+  }
+
+  .glass-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-elevation-low);
+    border-radius: 0.75rem;
+  }
+}
