@@ -10,3 +10,8 @@ export * from './Select';
 export * from './Slider';
 export * from './Switch';
 export * from './Tabs';
+export * from './Breadcrumbs';
+export * from './Stepper';
+export * from './Skeleton';
+export * from './Avatar';
+export * from './Tooltip';
