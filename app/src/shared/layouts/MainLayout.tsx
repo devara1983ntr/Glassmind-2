@@ -3,6 +3,8 @@ import { NavigationDrawer } from '@shared/ui/NavigationDrawer';
 import { Breadcrumbs } from '@shared/ui/Breadcrumbs';
 import { Stepper } from '@shared/ui/Stepper';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@features/auth';
+import { LoadingOverlay } from '@shared/ui/LoadingOverlay';
 
 const workflowSteps = [
   { id: 1, label: 'Upload' },
@@ -16,6 +18,7 @@ const workflowPaths = ['/upload', '/analysis', '/review', '/export'];
 export const MainLayout = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const isLoading = useAuthStore((state) => state.isLoading);
 
   const isWorkflowPage = workflowPaths.includes(currentPath);
 
@@ -40,6 +43,7 @@ export const MainLayout = () => {
            <Outlet />
         </main>
       </div>
+      {isLoading && <LoadingOverlay />}
     </div>
   );
 };

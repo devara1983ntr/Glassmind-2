@@ -8,7 +8,9 @@ import { useNavigate } from 'react-router-dom';
 const UploadPage = () => {
   const navigate = useNavigate();
   const files = useDocumentStore((state) => state.files);
+
   const isAllCompleted = files.length > 0 && files.every((f) => f.status === 'completed');
+  const isAnyUploading = files.some((f) => f.status === 'uploading');
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -24,7 +26,7 @@ const UploadPage = () => {
       <div className="flex justify-between items-center">
          <Typography variant="h4">Uploaded Files ({files.length})</Typography>
          <Button
-            disabled={!isAllCompleted}
+            disabled={!isAllCompleted || isAnyUploading}
             onClick={() => navigate('/analysis')}
             className="gap-2"
          >

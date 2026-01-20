@@ -5,24 +5,30 @@ import { Input } from '@shared/ui/Input';
 import { GlassCard } from '@shared/ui/GlassCard';
 import { Typography } from '@shared/ui/Typography';
 import { useNavigate } from 'react-router-dom';
+import { useToastStore } from '@shared/ui/Toast';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const login = useAuthStore((state) => state.login);
+  const { login, isLoading } = useAuthStore();
+  const { addToast } = useToastStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!email || !password) {
+        addToast('error', 'Please fill in all fields');
+        return;
+    }
 
-    login({ id: '1', name: 'Demo User', email });
-    setIsLoading(false);
-    navigate('/');
+    try {
+      await login(email);
+      addToast('success', 'Welcome back!');
+      navigate('/');
+    } catch (error) {
+      addToast('error', (error as Error).message);
+    }
   };
 
   return (

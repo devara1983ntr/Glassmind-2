@@ -5,27 +5,35 @@ import { Input } from '@shared/ui/Input';
 import { GlassCard } from '@shared/ui/GlassCard';
 import { Typography } from '@shared/ui/Typography';
 import { Icon } from '@shared/ui/Icon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail } from 'lucide-react';
+import { useToastStore } from '@shared/ui/Toast';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const login = useAuthStore((state) => state.login);
+  const { login, isLoading } = useAuthStore();
+  const { addToast } = useToastStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    login({ id: '1', name: 'Demo User', email });
-    setIsLoading(false);
-    navigate('/');
+
+    if (!email || !password) {
+        addToast('error', 'Please fill in all fields');
+        return;
+    }
+
+    try {
+      await login(email);
+      addToast('success', 'Welcome back!');
+      navigate('/');
+    } catch (error) {
+      addToast('error', (error as Error).message);
+    }
   };
 
   return (
@@ -125,17 +133,25 @@ const LoginPage = () => {
           </form>
         </GlassCard>
 
-        <div className="mt-6 text-center">
-             <Typography variant="muted">
-                {isRegistering ? "Already have an account?" : "New to the platform?"}
-             </Typography>
-             <Button
-                variant="ghost"
-                onClick={() => setIsRegistering(!isRegistering)}
-                className="text-white font-semibold hover:bg-transparent p-0 ml-2"
-            >
-                {isRegistering ? "Sign In" : "Create your account"}
-            </Button>
+        <div className="mt-6 text-center space-y-4">
+             <div>
+                <Typography variant="muted">
+                    {isRegistering ? "Already have an account?" : "New to the platform?"}
+                </Typography>
+                <Button
+                    variant="ghost"
+                    onClick={() => setIsRegistering(!isRegistering)}
+                    className="text-white font-semibold hover:bg-transparent p-0 ml-2 h-auto"
+                >
+                    {isRegistering ? "Sign In" : "Create your account"}
+                </Button>
+             </div>
+
+             <div className="flex justify-center gap-4 text-xs text-zinc-500">
+                <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                <span>•</span>
+                <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+             </div>
         </div>
       </div>
     </div>
