@@ -4,10 +4,24 @@ import { useCallback, useState } from 'react';
 import { useDocumentStore } from '../stores/useDocumentStore';
 import { Icon } from '@shared/ui/Icon';
 import { Typography } from '@shared/ui/Typography';
+import { useToastStore } from '@shared/ui/Toast';
 
 export const Dropzone = () => {
   const [isDragging, setIsDragging] = useState(false);
   const addFiles = useDocumentStore((state) => state.addFiles);
+  const { addToast } = useToastStore();
+
+  const handleFiles = useCallback((files: File[]) => {
+      const { valid, invalid } = addFiles(files);
+
+      if (valid.length > 0) {
+          addToast('success', `Started uploading ${valid.length} file(s)`);
+      }
+
+      if (invalid.length > 0) {
+          invalid.forEach(err => addToast('error', err));
+      }
+  }, [addFiles, addToast]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -25,20 +39,20 @@ export const Dropzone = () => {
       setIsDragging(false);
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        addFiles(files);
+        handleFiles(files);
       }
     },
-    [addFiles]
+    [handleFiles]
   );
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files ? Array.from(e.target.files) : [];
       if (files.length > 0) {
-        addFiles(files);
+        handleFiles(files);
       }
     },
-    [addFiles]
+    [handleFiles]
   );
 
   return (
@@ -56,6 +70,7 @@ export const Dropzone = () => {
       <input
         type="file"
         multiple
+        accept=".pdf,.jpg,.jpeg,.png,.tiff"
         onChange={handleFileInput}
         className="absolute inset-0 cursor-pointer opacity-0"
       />

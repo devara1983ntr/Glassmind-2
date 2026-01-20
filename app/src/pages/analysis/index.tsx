@@ -4,10 +4,33 @@ import { Typography } from '@shared/ui/Typography';
 import { Play } from 'lucide-react';
 import { Icon } from '@shared/ui/Icon';
 import { useNavigate } from 'react-router-dom';
+import { useToastStore } from '@shared/ui/Toast';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
-  const { questions, setQuestions } = useAnalysisStore();
+  const { questions, setQuestions, isGenerating, setGenerating, totalScore } = useAnalysisStore();
+  const { addToast } = useToastStore();
+
+  const handleGenerate = () => {
+      if (!questions.trim()) {
+          addToast('error', 'Please enter at least one question.');
+          return;
+      }
+
+      if (totalScore !== 100) {
+          addToast('warning', `Total marking points must equal 100 (Current: ${totalScore})`);
+          return;
+      }
+
+      setGenerating(true);
+
+      // Simulate generation delay
+      setTimeout(() => {
+          setGenerating(false);
+          addToast('success', 'Analysis generated successfully!');
+          navigate('/review');
+      }, 3000);
+  };
 
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-8rem)]">
@@ -38,9 +61,15 @@ const AnalysisPage = () => {
         </section>
 
         <div className="pt-4 pb-8">
-            <Button size="lg" className="w-full gap-2" onClick={() => navigate('/review')}>
+            <Button
+                size="lg"
+                className="w-full gap-2"
+                onClick={handleGenerate}
+                isLoading={isGenerating}
+                disabled={isGenerating || totalScore !== 100}
+            >
                 <Icon icon={Play} />
-                Generate Analysis
+                {isGenerating ? 'Analyzing Content...' : 'Generate Analysis'}
             </Button>
         </div>
       </div>
