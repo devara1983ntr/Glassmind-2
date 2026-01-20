@@ -1,15 +1,43 @@
 import { MarkingSchemeConfig, TemplateSelector, useAnalysisStore } from '@features/analysis';
 import { Button } from '@shared/ui/Button';
 import { Typography } from '@shared/ui/Typography';
-import { Play } from 'lucide-react';
+import { Play, Circle, BrainCircuit, Scan, FileText, Share2 } from 'lucide-react';
 import { Icon } from '@shared/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useToastStore } from '@shared/ui/Toast';
+import { useDocumentStore } from '@features/documents';
+import { useEffect, useRef } from 'react';
+import { cn } from '@shared/lib/utils';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
-  const { questions, setQuestions, isGenerating, setGenerating, totalScore } = useAnalysisStore();
+  const {
+      questions,
+      setQuestions,
+      isGenerating,
+      startAnalysis,
+      totalScore,
+      processingSteps
+  } = useAnalysisStore();
+  const { files } = useDocumentStore();
   const { addToast } = useToastStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+      if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+  }, [processingSteps]);
+
+  useEffect(() => {
+      if (!isGenerating && processingSteps.length > 0) {
+          const lastStep = processingSteps[processingSteps.length - 1];
+          if (lastStep.agent === 'Semantic Analysis Agent' && lastStep.status === 'completed') {
+               addToast('success', 'Analysis generated successfully!');
+               setTimeout(() => navigate('/review'), 1000);
+          }
+      }
+  }, [isGenerating, processingSteps, navigate, addToast]);
 
   const handleGenerate = () => {
       if (!questions.trim()) {
@@ -22,19 +50,26 @@ const AnalysisPage = () => {
           return;
       }
 
-      setGenerating(true);
+      const uploadFiles = files.map(f => f.file);
+      if (uploadFiles.length === 0) {
+           // Mock file for demo if none uploaded
+           const mockFile = new File(["dummy content"], "Physics_Exam_2024.pdf", { type: "application/pdf" });
+           startAnalysis([mockFile]);
+      } else {
+          startAnalysis(uploadFiles);
+      }
+  };
 
-      // Simulate generation delay
-      setTimeout(() => {
-          setGenerating(false);
-          addToast('success', 'Analysis generated successfully!');
-          navigate('/review');
-      }, 3000);
+  const getAgentIcon = (agentName: string) => {
+      if (agentName.includes('Ingestion')) return FileText;
+      if (agentName.includes('OCR')) return Scan;
+      if (agentName.includes('Semantic')) return BrainCircuit;
+      return Circle;
   };
 
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-8rem)]">
-      <div className="space-y-6 overflow-y-auto pr-2">
+      <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
         <div className="space-y-2">
           <Typography variant="h2">Configuration</Typography>
           <Typography variant="muted">Define how the AI should structure and format the answer.</Typography>
@@ -74,28 +109,75 @@ const AnalysisPage = () => {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-col h-full bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-        <div className="p-4 border-b border-white/10 bg-black/20">
-            <Typography variant="small" className="uppercase tracking-wider text-zinc-500">Live Preview</Typography>
+      <div className="hidden lg:flex flex-col h-full bg-black/40 rounded-2xl border border-white/10 overflow-hidden backdrop-blur-xl shadow-2xl">
+        <div className="p-4 border-b border-white/10 bg-black/40 flex justify-between items-center">
+            <Typography variant="small" className="uppercase tracking-wider text-zinc-400 font-semibold">
+                Processing Log
+            </Typography>
+            {isGenerating && (
+                <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span className="text-xs text-green-500 font-mono">LIVE</span>
+                </div>
+            )}
         </div>
-        <div className="flex-1 p-8 overflow-y-auto space-y-8 opacity-60 pointer-events-none select-none">
-            {/* Mock Preview Content */}
-            <div className="space-y-4">
-                <div className="h-8 w-3/4 bg-blue-500/20 rounded animate-pulse" />
-                <div className="space-y-2">
-                    <div className="h-4 w-full bg-white/10 rounded" />
-                    <div className="h-4 w-full bg-white/10 rounded" />
-                    <div className="h-4 w-5/6 bg-white/10 rounded" />
+
+        <div className="flex-1 p-6 overflow-y-auto space-y-2 font-mono text-sm" ref={scrollRef}>
+            {processingSteps.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-4">
+                    <Icon icon={BrainCircuit} className="h-16 w-16 opacity-20" />
+                    <p>Ready to process documents...</p>
                 </div>
-            </div>
-             <div className="space-y-4">
-                <div className="h-6 w-1/2 bg-blue-400/20 rounded animate-pulse" />
-                <div className="space-y-2">
-                    <div className="h-4 w-full bg-white/10 rounded" />
-                    <div className="h-4 w-11/12 bg-white/10 rounded" />
-                    <div className="h-4 w-full bg-white/10 rounded" />
+            ) : (
+                <div className="space-y-6">
+                    {processingSteps.map((step, index) => (
+                        <div key={index} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="flex items-start gap-3">
+                                <div className={cn(
+                                    "mt-0.5 h-2 w-2 rounded-full shrink-0",
+                                    step.status === 'processing' ? "bg-blue-500 animate-pulse" : "bg-green-500"
+                                )} />
+                                <div className="space-y-1 flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-zinc-300 font-medium flex items-center gap-2">
+                                            <Icon icon={getAgentIcon(step.agent)} className="h-3 w-3" />
+                                            {step.agent}
+                                        </span>
+                                        <span className="text-zinc-500 text-xs">{step.progress}%</span>
+                                    </div>
+                                    <p className="text-zinc-400">{step.message}</p>
+
+                                    {/* Visualizations based on step data */}
+                                    {step.data?.graph && (
+                                        <div className="mt-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                                            <div className="flex items-center gap-2 mb-2 text-blue-400 text-xs uppercase tracking-wide">
+                                                <Icon icon={Share2} className="h-3 w-3" />
+                                                Knowledge Graph Detected
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {step.data.graph.nodes.map((node: any) => (
+                                                    <span key={node.id} className="px-2 py-1 rounded bg-blue-500/20 text-blue-200 text-xs border border-blue-500/30">
+                                                        {node.label}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step.data?.extractedText && (
+                                         <div className="mt-2 p-3 rounded bg-zinc-900 border border-white/5 text-xs text-zinc-500 truncate font-sans">
+                                            "{step.data.extractedText.substring(0, 60)}..."
+                                         </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            </div>
+            )}
         </div>
       </div>
     </div>
