@@ -58,7 +58,7 @@ const LoginPage = () => {
             </Typography>
         </div>
 
-        <GlassCard variant="glass" className="p-8 backdrop-blur-2xl">
+        <GlassCard variant="elevated" className="p-8 backdrop-blur-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
              <div className="grid grid-cols-2 gap-4">
                 <Button variant="outline" type="button" className="w-full gap-2 hover:bg-white/5 border-white/10">

@@ -1,12 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-}
+import { authService } from '@shared/api/storage/services';
+import type { User } from '@shared/api/storage/types';
 
 interface AuthState {
   user: User | null;
@@ -14,7 +9,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (email: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
   setError: (error: string | null) => void;
 }
 
@@ -28,19 +24,9 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string) => {
         set({ isLoading: true, error: null });
         try {
-          // Simulate API call
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (email.includes('error')) {
-                    reject(new Error('Invalid credentials'));
-                } else {
-                    resolve(true);
-                }
-            }, 1500)
-          });
-
+          const user = await authService.login(email);
           set({
-            user: { id: '1', name: 'Demo User', email, role: 'user' },
+            user,
             isAuthenticated: true,
             isLoading: false
           });
@@ -49,9 +35,21 @@ export const useAuthStore = create<AuthState>()(
           throw err;
         }
       },
-      logout: () => {
-          set({ user: null, isAuthenticated: false });
+      logout: async () => {
+          set({ isLoading: true });
+          await authService.logout();
+          set({ user: null, isAuthenticated: false, isLoading: false });
           localStorage.removeItem('auth-storage');
+      },
+      checkAuth: async () => {
+          // This can be called on app mount to verify session validity if needed
+          // For now, reliance on persist + authService token check is enough
+          const user = await authService.getCurrentUser();
+          if (user) {
+              set({ user, isAuthenticated: true });
+          } else {
+              set({ user: null, isAuthenticated: false });
+          }
       },
       setError: (error) => set({ error }),
     }),

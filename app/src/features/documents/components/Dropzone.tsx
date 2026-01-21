@@ -11,15 +11,15 @@ export const Dropzone = () => {
   const addFiles = useDocumentStore((state) => state.addFiles);
   const { addToast } = useToastStore();
 
-  const handleFiles = useCallback((files: File[]) => {
-      const { valid, invalid } = addFiles(files);
+  const handleFiles = useCallback(async (files: File[]) => {
+      const { valid, invalid } = await addFiles(files);
 
       if (valid.length > 0) {
           addToast('success', `Started uploading ${valid.length} file(s)`);
       }
 
       if (invalid.length > 0) {
-          invalid.forEach(err => addToast('error', err));
+          invalid.forEach((err: string) => addToast('error', err));
       }
   }, [addFiles, addToast]);
 
