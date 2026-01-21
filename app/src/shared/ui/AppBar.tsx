@@ -31,7 +31,7 @@ export const AppBar = () => {
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={toggleMobileMenu}>
-            <Icon icon={Menu} />
+            <Icon icon={Menu} className="h-6 w-6" />
         </Button>
          <div className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
             Glassmind
@@ -48,7 +48,7 @@ export const AppBar = () => {
       </div>
 
       <div className="flex items-center gap-2 relative">
-        <div ref={notifRef} className="relative">
+        <div ref={notifRef} className="relative z-50">
              <Button variant="ghost" size="icon" className="relative" onClick={() => setShowNotifications(!showNotifications)}>
                 <Icon icon={Bell} />
                 <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-error" />
@@ -58,7 +58,7 @@ export const AppBar = () => {
             </AnimatePresence>
         </div>
 
-        <div ref={userRef} className="relative">
+        <div ref={userRef} className="relative z-50">
             <Button variant="ghost" size="icon" onClick={() => setShowUserMenu(!showUserMenu)}>
                 <Icon icon={User} />
             </Button>
