@@ -1,7 +1,7 @@
 import { GlassCard } from '@shared/ui/GlassCard';
 import { Typography } from '@shared/ui/Typography';
 import { Button } from '@shared/ui/Button';
-import { Upload, FileText, Clock, CheckCircle, ArrowRight, Activity, BrainCircuit } from 'lucide-react';
+import { Upload, FileText, Clock, CheckCircle, ArrowRight, BrainCircuit } from 'lucide-react';
 import { Icon } from '@shared/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useDocuments, useAnalysisHistory } from '@shared/hooks/api';
@@ -67,7 +67,7 @@ const DashboardPage = () => {
                 {recentAnalyses.length === 0 ? (
                     <div className="text-zinc-500 italic">No analysis history found. Start a new analysis to see it here.</div>
                 ) : (
-                    recentAnalyses.map((item, i) => (
+                    recentAnalyses.map((item) => (
                         <div key={item.id} className="relative">
                             <div className={`absolute -left-[39px] h-5 w-5 rounded-full border-4 border-black ${item.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group cursor-pointer">

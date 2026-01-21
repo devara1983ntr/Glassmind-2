@@ -20,7 +20,7 @@ interface DocumentStore {
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
 
-export const useDocumentStore = create<DocumentStore>((set, get) => ({
+export const useDocumentStore = create<DocumentStore>((set) => ({
   files: [],
   addFiles: async (newFiles) => {
     const validFiles: File[] = [];

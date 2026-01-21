@@ -7,7 +7,7 @@ import { Check, Info, AlertTriangle, XCircle, Trash, Bell, CheckCheck } from 'lu
 import { cn } from '@shared/lib/utils';
 import { Tabs } from '@shared/ui/Tabs';
 import { useNotifications, useMarkNotificationRead, useDeleteNotification, useMarkAllNotificationsRead } from '@shared/hooks/api';
-import { Notification } from '@shared/api/storage/types';
+import type { Notification } from '@shared/api/storage/types';
 
 const NotificationsPage = () => {
   const [activeTab, setActiveTab] = useState('all');

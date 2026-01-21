@@ -1,5 +1,6 @@
 import { storage, simulateDelay, generateId } from './core';
-import { STORAGE_KEYS, User, Document, Analysis, Notification } from './types';
+import { STORAGE_KEYS } from './types';
+import type { User, Document, Analysis, Notification } from './types';
 
 // Default User for initial setup
 const DEFAULT_USER: User = {

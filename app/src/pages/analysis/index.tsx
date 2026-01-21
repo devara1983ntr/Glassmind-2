@@ -8,7 +8,6 @@ import { useToastStore } from '@shared/ui/Toast';
 import { useDocuments } from '@shared/hooks/api';
 import { useEffect, useRef } from 'react';
 import { cn } from '@shared/lib/utils';
-import { GlassCard } from '@shared/ui/GlassCard';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
@@ -95,7 +94,7 @@ const AnalysisPage = () => {
                  <div className="h-20 flex items-center justify-center text-zinc-500">Loading documents...</div>
              ) : !documents || documents.length === 0 ? (
                  <div className="p-4 rounded-lg border border-dashed border-white/20 text-center text-zinc-500">
-                     No documents found. <Button variant="link" onClick={() => navigate('/upload')}>Upload now</Button>
+                     No documents found. <Button variant="ghost" className="text-primary underline" onClick={() => navigate('/upload')}>Upload now</Button>
                  </div>
              ) : (
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">

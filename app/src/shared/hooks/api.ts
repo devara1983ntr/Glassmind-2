@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService, documentService, analysisService, notificationService } from '../api/storage/services';
-import { User, Document } from '../api/storage/types';
 
 // Auth Hooks
 export const useUser = () => {

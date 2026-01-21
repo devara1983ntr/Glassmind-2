@@ -5,11 +5,11 @@ import { Input } from '@shared/ui/Input';
 import { Button } from '@shared/ui/Button';
 import { Badge } from '@shared/ui/Badge';
 import { Icon } from '@shared/ui/Icon';
-import { Search, Filter, Grid, List, FileText, MoreVertical, Download, Trash, Loader2 } from 'lucide-react';
+import { Search, Filter, Grid, List, FileText, Download, Trash, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDocuments, useDeleteDocument } from '@shared/hooks/api';
 import { useToastStore } from '@shared/ui/Toast';
-import { Document } from '@shared/api/storage/types';
+import type { Document } from '@shared/api/storage/types';
 
 const DocumentsPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
