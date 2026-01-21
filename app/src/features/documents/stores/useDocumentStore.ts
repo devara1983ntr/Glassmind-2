@@ -1,16 +1,18 @@
 import { create } from 'zustand';
+import { documentService } from '@shared/api/storage/services';
 
 export interface FileItem {
-  id: string;
+  id: string; // Temporary ID for the upload list
   file: File;
   progress: number;
   status: 'uploading' | 'completed' | 'error';
   errorMessage?: string;
+  documentId?: string; // Real ID after upload
 }
 
 interface DocumentStore {
   files: FileItem[];
-  addFiles: (files: File[]) => { valid: File[]; invalid: string[] };
+  addFiles: (files: File[]) => Promise<{ valid: File[]; invalid: string[] }>;
   removeFile: (id: string) => void;
   clearFiles: () => void;
 }
@@ -20,7 +22,7 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff
 
 export const useDocumentStore = create<DocumentStore>((set) => ({
   files: [],
-  addFiles: (newFiles) => {
+  addFiles: async (newFiles) => {
     const validFiles: File[] = [];
     const invalidReasons: string[] = [];
 
@@ -36,6 +38,7 @@ export const useDocumentStore = create<DocumentStore>((set) => ({
 
     if (validFiles.length === 0) return { valid: [], invalid: invalidReasons };
 
+    // Create temporary UI items
     const fileItems: FileItem[] = validFiles.map((file) => ({
       id: Math.random().toString(36).substring(7),
       file,
@@ -45,39 +48,39 @@ export const useDocumentStore = create<DocumentStore>((set) => ({
 
     set((state) => ({ files: [...state.files, ...fileItems] }));
 
-    // Simulate upload
-    fileItems.forEach((item) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 15;
+    // Start uploads
+    fileItems.forEach(async (item) => {
+      try {
+        // Simulate progress for UI feedback while waiting for service
+        const progressInterval = setInterval(() => {
+            set((state) => {
+                const f = state.files.find(x => x.id === item.id);
+                if (!f || f.status !== 'uploading') {
+                    clearInterval(progressInterval);
+                    return { files: state.files };
+                }
+                const newProgress = Math.min(f.progress + (Math.random() * 10), 90);
+                return {
+                    files: state.files.map((x) => x.id === item.id ? { ...x, progress: newProgress } : x)
+                };
+            });
+        }, 200);
 
-        // Random failure simulation (5% chance)
-        if (Math.random() < 0.05 && progress < 50) {
-            clearInterval(interval);
-            set((state) => ({
-                files: state.files.map((f) =>
-                  f.id === item.id ? { ...f, status: 'error', errorMessage: 'Network error' } : f
-                ),
-            }));
-            return;
-        }
+        const doc = await documentService.upload(item.file);
 
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          set((state) => ({
+        clearInterval(progressInterval);
+        set((state) => ({
             files: state.files.map((f) =>
-              f.id === item.id ? { ...f, progress: 100, status: 'completed' } : f
+              f.id === item.id ? { ...f, progress: 100, status: 'completed', documentId: doc.id } : f
             ),
+        }));
+      } catch (error) {
+          set((state) => ({
+              files: state.files.map((f) =>
+                f.id === item.id ? { ...f, status: 'error', errorMessage: (error as Error).message } : f
+              ),
           }));
-        } else {
-            set((state) => ({
-                files: state.files.map((f) =>
-                  f.id === item.id ? { ...f, progress } : f
-                ),
-              }));
-        }
-      }, 300);
+      }
     });
 
     return { valid: validFiles, invalid: invalidReasons };

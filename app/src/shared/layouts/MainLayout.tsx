@@ -31,11 +31,11 @@ export const MainLayout = () => {
       <AppBar />
       <div className="flex">
         <NavigationDrawer />
-        <main className="flex-1 p-6 md:ml-64 transition-all duration-300 ease-in-out">
-           <div className="flex justify-between items-start mb-6">
+        <main className="flex-1 p-6 lg:ml-64 transition-all duration-300 ease-in-out">
+           <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
               <Breadcrumbs />
               {isWorkflowPage && (
-                 <div className="w-64 hidden sm:block">
+                 <div className="w-full sm:w-64">
                      <Stepper steps={workflowSteps} currentStep={getCurrentStepIndex()} />
                  </div>
               )}

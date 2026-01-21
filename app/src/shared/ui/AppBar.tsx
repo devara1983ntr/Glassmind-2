@@ -5,12 +5,14 @@ import { useState, useRef, useEffect } from 'react';
 import { NotificationPanel } from '@features/notifications/components/NotificationPanel';
 import { UserMenu } from '@features/user/components/UserMenu';
 import { AnimatePresence } from 'framer-motion';
+import { useUIStore } from '@shared/stores/useUIStore';
 
 export const AppBar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const { toggleMobileMenu } = useUIStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -28,7 +30,7 @@ export const AppBar = () => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={toggleMobileMenu}>
             <Icon icon={Menu} />
         </Button>
          <div className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
@@ -36,7 +38,7 @@ export const AppBar = () => {
          </div>
       </div>
 
-      <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+      <div className="hidden lg:flex flex-1 max-w-xl mx-8 relative">
            <input
              type="text"
              placeholder="Search documents..."
