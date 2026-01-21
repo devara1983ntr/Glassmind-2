@@ -5,22 +5,51 @@ import { Input } from '@shared/ui/Input';
 import { Button } from '@shared/ui/Button';
 import { Badge } from '@shared/ui/Badge';
 import { Icon } from '@shared/ui/Icon';
-import { Search, Filter, Grid, List, FileText, MoreVertical, Download, Trash } from 'lucide-react';
-import { useDocumentStore } from '@features/documents';
+import { Search, Filter, Grid, List, FileText, MoreVertical, Download, Trash, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDocuments, useDeleteDocument } from '@shared/hooks/api';
+import { useToastStore } from '@shared/ui/Toast';
+import { Document } from '@shared/api/storage/types';
 
 const DocumentsPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const { files } = useDocumentStore();
   const navigate = useNavigate();
+  const { data: documents, isLoading, error } = useDocuments();
+  const deleteDocument = useDeleteDocument();
+  const { addToast } = useToastStore();
 
-  // Mock initial files if store is empty for demonstration
-  const displayFiles = files.length > 0 ? files : [
-      { id: '1', file: { name: 'Physics_Exam_2024.pdf', size: 2500000 }, status: 'completed', progress: 100 },
-      { id: '2', file: { name: 'Chemistry_Notes_Ch1.jpg', size: 1200000 }, status: 'completed', progress: 100 },
-      { id: '3', file: { name: 'History_Essay_Draft.docx', size: 500000 }, status: 'uploading', progress: 45 },
-  ];
+  const handleDelete = async (id: string) => {
+      if (confirm('Are you sure you want to delete this document?')) {
+          try {
+              await deleteDocument.mutateAsync(id);
+              addToast('success', 'Document deleted successfully');
+          } catch (err) {
+              addToast('error', 'Failed to delete document');
+          }
+      }
+  };
+
+  const filteredDocuments = documents?.filter(doc =>
+      doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
+  if (isLoading) {
+      return (
+          <div className="flex h-[50vh] items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+      );
+  }
+
+  if (error) {
+      return (
+          <div className="flex h-[50vh] items-center justify-center flex-col gap-4">
+              <Typography variant="h3" className="text-error">Error loading documents</Typography>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+      );
+  }
 
   return (
     <div className="space-y-6">
@@ -66,26 +95,37 @@ const DocumentsPage = () => {
         </div>
       </div>
 
-      {viewMode === 'grid' ? (
+      {filteredDocuments.length === 0 ? (
+          <GlassCard variant="flat" className="p-12 flex flex-col items-center text-center space-y-4">
+              <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center">
+                  <Icon icon={FileText} className="h-8 w-8 text-zinc-500" />
+              </div>
+              <div>
+                  <Typography variant="h4">No documents found</Typography>
+                  <Typography variant="muted">Upload some documents to get started</Typography>
+              </div>
+              <Button onClick={() => navigate('/upload')}>Upload Documents</Button>
+          </GlassCard>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {displayFiles.map((item: any) => (
-                <GlassCard key={item.id} variant="flat" className="group relative hover:bg-white/10 transition-colors">
+            {filteredDocuments.map((doc: Document) => (
+                <GlassCard key={doc.id} variant="flat" className="group relative hover:bg-white/10 transition-colors">
                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                             <Icon icon={MoreVertical} className="h-4 w-4" />
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-error hover:bg-error/20" onClick={() => handleDelete(doc.id)}>
+                             <Icon icon={Trash} className="h-4 w-4" />
                          </Button>
                     </div>
                     <div className="flex flex-col items-center text-center pt-4 pb-2">
                         <div className="h-16 w-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4 text-blue-500">
                              <Icon icon={FileText} className="h-8 w-8" />
                         </div>
-                        <Typography variant="body" className="font-medium truncate w-full px-2">{item.file.name}</Typography>
+                        <Typography variant="body" className="font-medium truncate w-full px-2">{doc.name}</Typography>
                         <Typography variant="small" className="text-zinc-500 mt-1">
-                            {(item.file.size / 1024 / 1024).toFixed(2)} MB • {new Date().toLocaleDateString()}
+                            {(doc.size / 1024 / 1024).toFixed(2)} MB • {new Date(doc.uploadDate).toLocaleDateString()}
                         </Typography>
                          <div className="mt-4 flex gap-2 w-full justify-center">
-                            <Badge variant={item.status === 'completed' ? 'success' : 'default'}>
-                                {item.status === 'completed' ? 'Processed' : 'Processing'}
+                            <Badge variant={doc.status === 'ready' ? 'success' : 'default'}>
+                                {doc.status === 'ready' ? 'Processed' : 'Processing'}
                             </Badge>
                          </div>
                     </div>
@@ -105,17 +145,17 @@ const DocumentsPage = () => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                    {displayFiles.map((item: any) => (
-                         <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                    {filteredDocuments.map((doc: Document) => (
+                         <tr key={doc.id} className="hover:bg-white/5 transition-colors">
                              <td className="p-4 flex items-center gap-3 font-medium text-white">
                                  <Icon icon={FileText} className="text-blue-500 h-4 w-4" />
-                                 {item.file.name}
+                                 {doc.name}
                              </td>
-                             <td className="p-4 text-zinc-400">{(item.file.size / 1024 / 1024).toFixed(2)} MB</td>
-                             <td className="p-4 text-zinc-400">{new Date().toLocaleDateString()}</td>
+                             <td className="p-4 text-zinc-400">{(doc.size / 1024 / 1024).toFixed(2)} MB</td>
+                             <td className="p-4 text-zinc-400">{new Date(doc.uploadDate).toLocaleDateString()}</td>
                              <td className="p-4">
-                                <Badge variant={item.status === 'completed' ? 'success' : 'default'}>
-                                    {item.status === 'completed' ? 'Processed' : 'Processing'}
+                                <Badge variant={doc.status === 'ready' ? 'success' : 'default'}>
+                                    {doc.status === 'ready' ? 'Processed' : 'Processing'}
                                 </Badge>
                              </td>
                              <td className="p-4 text-right">
@@ -123,7 +163,7 @@ const DocumentsPage = () => {
                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
                                          <Icon icon={Download} className="h-4 w-4" />
                                      </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-error">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-error" onClick={() => handleDelete(doc.id)}>
                                          <Icon icon={Trash} className="h-4 w-4" />
                                      </Button>
                                  </div>

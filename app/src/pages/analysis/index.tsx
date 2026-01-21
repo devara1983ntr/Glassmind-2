@@ -1,13 +1,14 @@
 import { MarkingSchemeConfig, TemplateSelector, useAnalysisStore } from '@features/analysis';
 import { Button } from '@shared/ui/Button';
 import { Typography } from '@shared/ui/Typography';
-import { Play, Circle, BrainCircuit, Scan, FileText, Share2 } from 'lucide-react';
+import { Play, Circle, BrainCircuit, Scan, FileText, Share2, Check } from 'lucide-react';
 import { Icon } from '@shared/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import { useToastStore } from '@shared/ui/Toast';
-import { useDocumentStore } from '@features/documents';
+import { useDocuments } from '@shared/hooks/api';
 import { useEffect, useRef } from 'react';
 import { cn } from '@shared/lib/utils';
+import { GlassCard } from '@shared/ui/GlassCard';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
@@ -17,9 +18,12 @@ const AnalysisPage = () => {
       isGenerating,
       startAnalysis,
       totalScore,
-      processingSteps
+      processingSteps,
+      selectedDocumentIds,
+      setSelectedDocumentIds
   } = useAnalysisStore();
-  const { files } = useDocumentStore();
+
+  const { data: documents, isLoading: docsLoading } = useDocuments();
   const { addToast } = useToastStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +44,11 @@ const AnalysisPage = () => {
   }, [isGenerating, processingSteps, navigate, addToast]);
 
   const handleGenerate = () => {
+      if (selectedDocumentIds.length === 0) {
+          addToast('error', 'Please select at least one document.');
+          return;
+      }
+
       if (!questions.trim()) {
           addToast('error', 'Please enter at least one question.');
           return;
@@ -50,13 +59,14 @@ const AnalysisPage = () => {
           return;
       }
 
-      const uploadFiles = files.map(f => f.file);
-      if (uploadFiles.length === 0) {
-           // Mock file for demo if none uploaded
-           const mockFile = new File(["dummy content"], "Physics_Exam_2024.pdf", { type: "application/pdf" });
-           startAnalysis([mockFile]);
+      startAnalysis();
+  };
+
+  const toggleDocument = (id: string) => {
+      if (selectedDocumentIds.includes(id)) {
+          setSelectedDocumentIds(selectedDocumentIds.filter(d => d !== id));
       } else {
-          startAnalysis(uploadFiles);
+          setSelectedDocumentIds([...selectedDocumentIds, id]);
       }
   };
 
@@ -69,33 +79,72 @@ const AnalysisPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-8rem)]">
-      <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar pb-20">
         <div className="space-y-2">
           <Typography variant="h2">Configuration</Typography>
           <Typography variant="muted">Define how the AI should structure and format the answer.</Typography>
         </div>
 
         <section className="space-y-4">
-            <Typography variant="h3">1. Input Questions</Typography>
+             <div className="flex justify-between items-center">
+                <Typography variant="h3">1. Select Documents</Typography>
+                <Typography variant="small" className="text-zinc-500">{selectedDocumentIds.length} selected</Typography>
+             </div>
+
+             {docsLoading ? (
+                 <div className="h-20 flex items-center justify-center text-zinc-500">Loading documents...</div>
+             ) : !documents || documents.length === 0 ? (
+                 <div className="p-4 rounded-lg border border-dashed border-white/20 text-center text-zinc-500">
+                     No documents found. <Button variant="link" onClick={() => navigate('/upload')}>Upload now</Button>
+                 </div>
+             ) : (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+                     {documents.map(doc => {
+                         const isSelected = selectedDocumentIds.includes(doc.id);
+                         return (
+                             <div
+                                key={doc.id}
+                                onClick={() => toggleDocument(doc.id)}
+                                className={cn(
+                                    "p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between",
+                                    isSelected
+                                        ? "bg-primary/10 border-primary/50 text-white"
+                                        : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"
+                                )}
+                             >
+                                 <div className="flex items-center gap-3 overflow-hidden">
+                                     <Icon icon={FileText} className={cn("h-4 w-4 shrink-0", isSelected ? "text-primary" : "text-zinc-500")} />
+                                     <span className="truncate text-sm font-medium">{doc.name}</span>
+                                 </div>
+                                 {isSelected && <Icon icon={Check} className="h-4 w-4 text-primary shrink-0" />}
+                             </div>
+                         )
+                     })}
+                 </div>
+             )}
+        </section>
+
+        <section className="space-y-4">
+            <Typography variant="h3">2. Input Questions</Typography>
             <textarea
                 value={questions}
                 onChange={(e) => setQuestions(e.target.value)}
-                placeholder="Paste your questions here or let the AI extract them from uploaded documents..."
-                className="w-full h-40 rounded-xl bg-white/5 border border-white/10 p-4 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-mono text-sm"
+                placeholder="What would you like to know about these documents?"
+                className="w-full h-32 rounded-xl bg-white/5 border border-white/10 p-4 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-mono text-sm"
             />
         </section>
 
         <section className="space-y-4">
-            <Typography variant="h3">2. Choose Style</Typography>
+            <Typography variant="h3">3. Choose Style</Typography>
             <TemplateSelector />
         </section>
 
         <section className="space-y-4">
-             <Typography variant="h3">3. Marking Scheme</Typography>
+             <Typography variant="h3">4. Marking Scheme</Typography>
              <MarkingSchemeConfig />
         </section>
 
-        <div className="pt-4 pb-8">
+        <div className="pt-4">
             <Button
                 size="lg"
                 className="w-full gap-2"

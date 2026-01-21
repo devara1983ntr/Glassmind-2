@@ -15,6 +15,7 @@ const ReviewPage = lazy(() => import('@pages/review'));
 const ExportPage = lazy(() => import('@pages/export'));
 const SettingsPage = lazy(() => import('@pages/settings'));
 const DocumentsPage = lazy(() => import('@pages/documents'));
+const NotificationsPage = lazy(() => import('@pages/notifications'));
 const TermsPage = lazy(() => import('@pages/legal/TermsPage'));
 const PrivacyPage = lazy(() => import('@pages/legal/PrivacyPage'));
 
@@ -64,6 +65,7 @@ export const AppRoutes = () => {
                 { path: 'export', element: <Suspense fallback={<LoadingOverlay />}><ExportPage /></Suspense> },
                 { path: 'settings', element: <Suspense fallback={<LoadingOverlay />}><SettingsPage /></Suspense> },
                 { path: 'documents', element: <Suspense fallback={<LoadingOverlay />}><DocumentsPage /></Suspense> },
+                { path: 'notifications', element: <Suspense fallback={<LoadingOverlay />}><NotificationsPage /></Suspense> },
             ]
         }
       ],
