@@ -76,7 +76,7 @@ export const NavigationDrawer = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeMobileMenu}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
             />
 
             {/* Drawer */}
@@ -85,7 +85,7 @@ export const NavigationDrawer = () => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-64 bg-[#0a0a0a] border-r border-white/10 lg:hidden shadow-2xl"
+              className="fixed left-0 top-0 bottom-0 z-[60] w-64 bg-[#0a0a0a] border-r border-white/10 lg:hidden shadow-2xl"
             >
                <div className="h-16 flex items-center px-6 border-b border-white/5">
                    <div className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
